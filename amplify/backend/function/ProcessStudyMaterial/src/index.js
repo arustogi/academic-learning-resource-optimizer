@@ -1,34 +1,46 @@
-const AWS = require('aws-sdk');
-const openai = require('openai');
-const dynamoDB = new AWS.DynamoDB.DocumentClient();
+import { DynamoDB } from 'aws-sdk';
+const docClient = new DynamoDB.DocumentClient();
+import { v4 as uuidv4 } from 'uuid'; // to generate unique documentId
 
-openai.apiKey = process.env.OPENAI_API_KEY;
+export async function handler(event) {
+    console.log("Received event:", JSON.stringify(event, null, 2));
+    
+    let response;
+    try {
+        const { documentContent } = JSON.parse(event.body);
 
-exports.handler = async (event) => {
-    const { userId, documentContent } = JSON.parse(event.body);
-
-    const response = await openai.Completion.create({
-        engine: 'davinci-codex',
-        prompt: documentContent,
-        max_tokens: 150
-    });
-
-    const studyGuide = response.choices[0].text;
-
-    const params = {
-        TableName: process.env.STUDY_MATERIAL_TABLE,
-        Item: {
-            id: userId,
-            DocumentContent: documentContent,
-            StudyGuide: studyGuide,
-            Timestamp: new Date().toISOString()
+        if (!documentContent) {
+            response = {
+                statusCode: 400,
+                body: JSON.stringify({ message: "Missing document content" }),
+            };
+            console.log("Missing document content:", response);
+            return response;
         }
-    };
 
-    await dynamoDB.put(params).promise();
+        const params = {
+            TableName: 'studyMaterial', // Correct DynamoDB table name
+            Item: {
+                documentId: uuidv4(), // Unique document identifier
+                documentContent,
+                uploadedAt: new Date().toISOString()
+            }
+        };
 
-    return {
-        statusCode: 200,
-        body: JSON.stringify({ message: 'Study guide created successfully', studyGuide })
-    };
-};
+        console.log("Params to be inserted:", params);
+
+        await docClient.put(params).promise();
+        response = {
+            statusCode: 200,
+            body: JSON.stringify({ message: "Document uploaded successfully" }),
+        };
+        console.log("Document uploaded successfully:", response);
+    } catch (error) {
+        console.error("Error uploading document:", error);
+        response = {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Internal server error", error }),
+        };
+    }
+    return response;
+}

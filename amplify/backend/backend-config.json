@@ -1,9 +1,43 @@
 {
+  "api": {
+    "storeDocs": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "ProcessStudyMaterial"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    }
+  },
   "function": {
     "ProcessStudyMaterial": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_ProcessStudyMaterial_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ProcessStudyMaterial"
+        }
+      ]
+    },
+    "AMPLIFY_function_ProcessStudyMaterial_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "ProcessStudyMaterial"
+        }
+      ]
     }
   },
   "storage": {

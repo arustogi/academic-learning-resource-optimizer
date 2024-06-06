@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "paths": {
+    "/uploadDocument": {
+      "name": "/uploadDocument",
+      "lambdaFunction": "ProcessStudyMaterial",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+}
