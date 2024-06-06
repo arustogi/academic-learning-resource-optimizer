@@ -1,0 +1,15 @@
+{
+  "function": {
+    "ProcessStudyMaterial": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "storage": {
+    "studyMaterial": {
+      "providerPlugin": "awscloudformation",
+      "service": "DynamoDB"
+    }
+  }
+}

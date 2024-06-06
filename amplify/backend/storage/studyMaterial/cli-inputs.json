@@ -1,0 +1,18 @@
+{
+  "resourceName": "studyMaterial",
+  "tableName": "studyMaterial",
+  "partitionKey": {
+    "fieldName": "id",
+    "fieldType": "string"
+  },
+  "gsi": [
+    {
+      "name": "userId-index",
+      "partitionKey": {
+        "fieldName": "id",
+        "fieldType": "string"
+      }
+    }
+  ],
+  "triggerFunctions": []
+}
