@@ -1,5 +1,10 @@
 {
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.592.0",
+    "@aws-sdk/client-s3": "^3.592.0",
+    "uuid": "^9.0.1"
   }
 }

@@ -1,8 +1,9 @@
-import { DynamoDB } from 'aws-sdk';
-const docClient = new DynamoDB.DocumentClient();
-import { v4 as uuidv4 } from 'uuid'; // to generate unique documentId
+const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const { v4: uuidv4 } = require('uuid');
 
-export async function handler(event) {
+const client = new DynamoDBClient({ region: "us-west-2" }); // Specify your region
+
+exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
     
     let response;
@@ -19,17 +20,19 @@ export async function handler(event) {
         }
 
         const params = {
-            TableName: 'studyMaterial', // Correct DynamoDB table name
+            TableName: 'studyMaterial-dev', // Correct DynamoDB table name
             Item: {
-                documentId: uuidv4(), // Unique document identifier
-                documentContent,
-                uploadedAt: new Date().toISOString()
+                id: { S: uuidv4() }, // Unique document identifier, assuming 'id' is the primary key
+                documentContent: { S: documentContent },
+                uploadedAt: { S: new Date().toISOString() }
             }
         };
 
         console.log("Params to be inserted:", params);
 
-        await docClient.put(params).promise();
+        const command = new PutItemCommand(params);
+        await client.send(command);
+
         response = {
             statusCode: 200,
             body: JSON.stringify({ message: "Document uploaded successfully" }),
@@ -43,4 +46,4 @@ export async function handler(event) {
         };
     }
     return response;
-}
+};
