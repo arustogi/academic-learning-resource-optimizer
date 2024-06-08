@@ -18,7 +18,7 @@
       "function": {
         "ProcessStudyMaterial": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/ProcessStudyMaterial-464b7a48766d6b2f7a67-build.zip"
+          "s3Key": "amplify-builds/ProcessStudyMaterial-72535967456c524a485a-build.zip"
         }
       },
       "api": {
