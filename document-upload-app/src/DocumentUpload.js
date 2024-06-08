@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Amplify } from 'aws-amplify';
-import { get } from '@aws-amplify/api-rest';
+import { post } from '@aws-amplify/api-rest';
 import awsExports from './aws-exports';
 import { TextField, Button, View, Alert } from '@aws-amplify/ui-react';
 
@@ -31,20 +31,15 @@ function DocumentUpload() {
 
         try {
             const fileContent = await selectedFile.text(); // Read file content
-            const restOperation = get({
-                apiName: 'storeDocs', // Replace with your API name
-                path: '/uploadDocument',
-                init: {
-                    body: {
-                        userId: 'user123',
-                        documentTitle,
-                        documentContent: fileContent
-                    }
+            console.log("File content:", fileContent);
+            const response = await post('storeDocs', '/uploadDocument', {
+                body: {
+                    userId: 'user123',
+                    documentTitle,
+                    documentContent: fileContent
                 }
             });
-            const { body } = await restOperation.response;
-            const response = await body.json();
-            console.log(response);
+            console.log("API response:", response);
             setUploadStatus('Document Uploaded');
         } catch (error) {
             console.error("Error uploading document:", error);
