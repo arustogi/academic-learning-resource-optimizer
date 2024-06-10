@@ -20,6 +20,11 @@
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    },
+    "generateStudySchedule": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
     }
   },
   "parameters": {
@@ -36,6 +41,22 @@
         {
           "category": "function",
           "resourceName": "ProcessStudyMaterial"
+        }
+      ]
+    },
+    "AMPLIFY_function_generateStudySchedule_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "generateStudySchedule"
+        }
+      ]
+    },
+    "AMPLIFY_function_generateStudySchedule_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "generateStudySchedule"
         }
       ]
     }

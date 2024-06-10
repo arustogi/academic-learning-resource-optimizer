@@ -1,29 +1,32 @@
 const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const { v4: uuidv4 } = require('uuid');
 
-const client = new DynamoDBClient({ region: "us-west-2" }); // Specify your region
+const client = new DynamoDBClient({ region: "us-west-2" });
 
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
     
     let response;
     try {
-        const { documentContent } = JSON.parse(event.body);
+        const { documentTitle, documentContent, fileType, fileName } = JSON.parse(event.body);
 
-        if (!documentContent) {
+        if (!documentTitle || !documentContent) {
             response = {
                 statusCode: 400,
-                body: JSON.stringify({ message: "Missing document content" }),
+                body: JSON.stringify({ message: "Missing document title or content" }),
             };
-            console.log("Missing document content:", response);
+            console.log("Missing document title or content:", response);
             return response;
         }
 
         const params = {
-            TableName: 'studyMaterial-dev', // Correct DynamoDB table name
+            TableName: 'studyMaterial-dev', 
             Item: {
-                id: { S: uuidv4() }, // Unique document identifier, assuming 'id' is the primary key
-                documentContent: { S: documentContent },
+                id: { S: uuidv4() },
+                documentTitle: { S: documentTitle },
+                documentContent: { B: Buffer.from(documentContent, 'base64') },
+                fileType: { S: fileType },
+                fileName: { S: fileName },
                 uploadedAt: { S: new Date().toISOString() }
             }
         };

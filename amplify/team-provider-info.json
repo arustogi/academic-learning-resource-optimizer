@@ -18,7 +18,11 @@
       "function": {
         "ProcessStudyMaterial": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/ProcessStudyMaterial-72535967456c524a485a-build.zip"
+          "s3Key": "amplify-builds/ProcessStudyMaterial-7a4d66554762434d7354-build.zip"
+        },
+        "generateStudySchedule": {
+          "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
+          "s3Key": "amplify-builds/generateStudySchedule-37617a50524a48564431-build.zip"
         }
       },
       "api": {
