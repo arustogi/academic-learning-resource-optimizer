@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { post } from '@aws-amplify/api';
-import awsExports from './aws-exports';
+import awsExports from '../../aws-exports';
 import { Amplify } from 'aws-amplify';
 
 import { TextField, Button, View, Alert } from '@aws-amplify/ui-react';
