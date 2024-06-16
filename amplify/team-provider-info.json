@@ -18,11 +18,15 @@
       "function": {
         "ProcessStudyMaterial": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/ProcessStudyMaterial-7a4d66554762434d7354-build.zip"
+          "s3Key": "amplify-builds/ProcessStudyMaterial-324d5738747249416e39-build.zip"
         },
         "generateStudySchedule": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateStudySchedule-37617a50524a48564431-build.zip"
+          "s3Key": "amplify-builds/generateStudySchedule-6d4e4f32674937314f41-build.zip"
+        },
+        "createFolder": {
+          "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
+          "s3Key": "amplify-builds/createFolder-375052764a74346b4937-build.zip"
         }
       },
       "api": {

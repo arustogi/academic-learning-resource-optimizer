@@ -21,6 +21,11 @@
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
+    "createFolder": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "generateStudySchedule": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -41,6 +46,22 @@
         {
           "category": "function",
           "resourceName": "ProcessStudyMaterial"
+        }
+      ]
+    },
+    "AMPLIFY_function_createFolder_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "createFolder"
+        }
+      ]
+    },
+    "AMPLIFY_function_createFolder_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "createFolder"
         }
       ]
     },
