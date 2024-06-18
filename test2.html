@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Upload Document</title>
+</head>
+<body>
+    <form id="uploadForm">
+        <label for="documentTitle">Document Title:</label>
+        <input type="text" id="documentTitle" name="documentTitle" required>
+        <br>
+        <label for="documentContent">Document Content (base64):</label>
+        <textarea id="documentContent" name="documentContent" required></textarea>
+        <br>
+        <label for="fileType">File Type:</label>
+        <input type="text" id="fileType" name="fileType" required>
+        <br>
+        <label for="fileName">File Name:</label>
+        <input type="text" id="fileName" name="fileName" required>
+        <br>
+        <label for="folderName">Folder Name:</label>
+        <input type="text" id="folderName" name="folderName" required>
+        <br>
+        <button type="submit">Upload Document</button>
+    </form>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const documentTitle = document.getElementById('documentTitle').value;
+            const documentContent = document.getElementById('documentContent').value;
+            const fileType = document.getElementById('fileType').value;
+            const fileName = document.getElementById('fileName').value;
+            const folderName = document.getElementById('folderName').value;
+
+            const response = await fetch('https://9cfdj03mjb.execute-api.us-west-2.amazonaws.com/dev/uploadDocument', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': 'http://127.0.0.1:5500'
+                },
+                body: JSON.stringify({
+                    documentTitle,
+                    documentContent,
+                    fileType,
+                    fileName,
+                    folderName
+                })
+            });
+
+            const result = await response.json();
+            console.log(result);
+        });
+    </script>
+</body>
+</html>

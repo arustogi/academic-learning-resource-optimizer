@@ -3,54 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document Upload</title>
+    <title>Study Material Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        input, textarea, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 <body>
-    <h1>Upload a Document</h1>
-    <form id="uploadForm">
-        <label for="documentTitle">Document Title:</label>
-        <input type="text" id="documentTitle" name="documentTitle" required><br><br>
-        <label for="documentFile">Choose a file:</label>
-        <input type="file" id="documentFile" name="documentFile" required><br><br>
-        <button type="submit">Upload Document</button>
-    </form>
-    <p id="responseMessage"></p>
+    <div class="container">
+        <h1>Study Material Manager</h1>
+        <h2>Create Folder</h2>
+        <input type="text" id="folderName" placeholder="Folder Name">
+        <button onclick="createFolder()">Create Folder</button>
+
+        <h2>Upload Document</h2>
+        <input type="text" id="documentTitle" placeholder="Document Title">
+        <input type="file" id="documentFile">
+        <input type="text" id="folderNameForUpload" placeholder="Folder Name">
+        <button onclick="uploadDocument()">Upload Document</button>
+
+        <h2>Generate Study Schedule</h2>
+        <input type="date" id="endDate">
+        <button onclick="generateSchedule()">Generate Schedule</button>
+
+        <h2>Output</h2>
+        <textarea id="output" rows="10" readonly></textarea>
+    </div>
 
     <script>
-        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
-            event.preventDefault();
-            const documentTitle = document.getElementById('documentTitle').value;
-            const fileInput = document.getElementById('documentFile');
-            const file = fileInput.files[0];
+        const apiUrl = 'https://9cfdj03mjb.execute-api.us-west-2.amazonaws.com/dev';  // Replace with your API Gateway endpoint
 
-            if (!documentTitle || !file) {
-                alert("Please provide both a document title and a file.");
+        async function createFolder() {
+            const folderName = document.getElementById('folderName').value;
+            if (!folderName) {
+                alert('Please enter a folder name');
                 return;
             }
 
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                const fileContent = e.target.result;
+            const response = await fetch(`${apiUrl}/createFolder`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folderName })
+            });
 
-                const response = await fetch('https://9cfdj03mjb.execute-api.us-west-2.amazonaws.com/dev/uploadDocument', {
+            const result = await response.json();
+            document.getElementById('output').value = JSON.stringify(result, null, 2);
+        }
+
+        async function uploadDocument() {
+            const documentTitle = document.getElementById('documentTitle').value;
+            const fileInput = document.getElementById('documentFile');
+            const folderName = document.getElementById('folderNameForUpload').value;
+
+            if (!documentTitle || !fileInput.files.length || !folderName) {
+                alert('Please enter all fields');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+
+            reader.onload = async function() {
+                const base64File = reader.result.split(',')[1];
+                const fileType = file.type || 'application/octet-stream';
+                const fileName = file.name;
+
+                const response = await fetch(`${apiUrl}/uploadDocument`, {  // Adjusted to match the correct endpoint
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        documentTitle: documentTitle,
-                        documentContent: btoa(String.fromCharCode(...new Uint8Array(fileContent))),
-                        fileType: file.type,
-                        fileName: file.name
+                        documentTitle,
+                        documentContent: base64File,
+                        fileType,
+                        fileName,
+                        folderName
                     })
                 });
 
                 const result = await response.json();
-                document.getElementById('responseMessage').textContent = result.message || 'Error uploading document';
+                document.getElementById('output').value = JSON.stringify(result, null, 2);
             };
 
-            reader.readAsArrayBuffer(file); // Read file as an ArrayBuffer
-        });
+            reader.readAsDataURL(file);
+        }
+
+        async function generateSchedule() {
+            const endDate = document.getElementById('endDate').value;
+            if (!endDate) {
+                alert('Please select an end date');
+                return;
+            }
+
+            const response = await fetch(`${apiUrl}/generateSchedule`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ endDate })
+            });
+
+            const result = await response.json();
+            document.getElementById('output').value = JSON.stringify(result, null, 2);
+        }
     </script>
 </body>
 </html>
