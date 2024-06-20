@@ -80,7 +80,7 @@
                 const fileType = file.type || 'application/octet-stream';
                 const fileName = file.name;
 
-                const response = await fetch(`${apiUrl}/uploadDocument`, {  // Adjusted to match the correct endpoint
+                const response = await fetch(`${apiUrl}/processStudyMaterial`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -109,7 +109,7 @@
             const response = await fetch(`${apiUrl}/generateSchedule`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ endDate })
+                body: JSON.stringify({ endDate })  // Ensure the body is correctly formatted
             });
 
             const result = await response.json();

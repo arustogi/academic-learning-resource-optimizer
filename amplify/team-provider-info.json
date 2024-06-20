@@ -22,7 +22,7 @@
         },
         "generateStudySchedule": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateStudySchedule-5446557335624c307a58-build.zip"
+          "s3Key": "amplify-builds/generateStudySchedule-6176586d643262577752-build.zip"
         },
         "createFolder": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",

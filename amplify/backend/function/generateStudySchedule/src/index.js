@@ -1,9 +1,6 @@
 const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const axios = require('axios');
-const { Readable } = require('stream');
-const { promisify } = require('util');
-const streamToString = promisify(Readable.prototype.pipe);
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
 const s3Client = new S3Client({ region: "us-west-2" });
@@ -27,7 +24,35 @@ exports.handler = async (event) => {
 
     let response;
     try {
-        const { endDate } = JSON.parse(event.body);
+        let requestBody;
+        try {
+            requestBody = JSON.parse(event.body);
+        } catch (e) {
+            console.error("Invalid JSON input in event body", e);
+            throw new Error("Invalid JSON input in event body");
+        }
+
+        console.log("Parsed requestBody:", requestBody);
+
+        let bodyContent;
+        if (requestBody.body) {
+            try {
+                bodyContent = JSON.parse(requestBody.body);
+            } catch (e) {
+                console.error("Invalid JSON input in body field", e);
+                throw new Error("Invalid JSON input in body field");
+            }
+        } else {
+            bodyContent = requestBody;
+        }
+
+        console.log("Parsed bodyContent:", bodyContent);
+
+        const { endDate } = bodyContent;
+        if (!endDate) {
+            throw new Error("Missing endDate");
+        }
+
         const params = {
             TableName: 'studyMaterial-dev'
         };
@@ -93,11 +118,21 @@ async function fetchS3Content(s3Url) {
     const response = await s3Client.send(command);
 
     const stream = response.Body;
-    return await streamToString.call(stream, '');
+
+    return await streamToString(stream);
+}
+
+async function streamToString(stream) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        stream.on('data', (chunk) => chunks.push(chunk));
+        stream.on('error', (err) => reject(err));
+        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
+    });
 }
 
 async function summarizeDocument(documentContent) {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const OPENAI_API_KEY =;
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
@@ -132,9 +167,9 @@ async function summarizeDocument(documentContent) {
 }
 
 async function generateStudySchedule(documentSummaries, endDate) {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const OPENAI_API_KEY = ;
     if (!OPENAI_API_KEY) {
-        throw new Error("OPENAI_API_KEY environment variable is not set");
+        throw new Error("OPENAI_API_KEY environment variable is not set yet");
     }
 
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
