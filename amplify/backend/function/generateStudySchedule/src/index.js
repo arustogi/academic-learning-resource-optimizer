@@ -1,6 +1,7 @@
 const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
 const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const axios = require('axios');
+const { differenceInDays, parseISO } = require('date-fns');
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
 const s3Client = new S3Client({ region: "us-west-2" });
@@ -24,33 +25,51 @@ exports.handler = async (event) => {
 
     let response;
     try {
+        console.log("Event body:", event.body);
         let requestBody;
         try {
             requestBody = JSON.parse(event.body);
+            console.log("Parsed requestBody:", requestBody);
         } catch (e) {
             console.error("Invalid JSON input in event body", e);
-            throw new Error("Invalid JSON input in event body");
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "Invalid JSON input in event body" }),
+            };
         }
 
-        console.log("Parsed requestBody:", requestBody);
-
         let bodyContent;
-        if (requestBody.body) {
+        if (typeof requestBody.body === 'string') {
             try {
                 bodyContent = JSON.parse(requestBody.body);
+                console.log("Parsed bodyContent:", bodyContent);
             } catch (e) {
                 console.error("Invalid JSON input in body field", e);
-                throw new Error("Invalid JSON input in body field");
+                return {
+                    statusCode: 400,
+                    body: JSON.stringify({ message: "Invalid JSON input in body field" }),
+                };
             }
         } else {
             bodyContent = requestBody;
         }
 
-        console.log("Parsed bodyContent:", bodyContent);
+        console.log("Final bodyContent:", bodyContent);
 
         const { endDate } = bodyContent;
         if (!endDate) {
-            throw new Error("Missing endDate");
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "Missing endDate" }),
+            };
+        }
+
+        const daysUntilEnd = differenceInDays(parseISO(endDate), new Date());
+        if (daysUntilEnd <= 0) {
+            return {
+                statusCode: 400,
+                body: JSON.stringify({ message: "End date must be in the future" }),
+            };
         }
 
         const params = {
@@ -61,15 +80,15 @@ exports.handler = async (event) => {
         const data = await dynamoClient.send(command);
 
         if (data.Items) {
-            let documentSummaries = [];
-            for (const item of data.Items) {
+            const documentSummaries = await Promise.all(data.Items.map(async (item) => {
                 const s3Url = item.s3Url.S;
                 const documentContent = await fetchS3Content(s3Url);
-                const documentSummary = await summarizeDocument(documentContent);
-                documentSummaries.push(documentSummary);
-            }
+                return summarizeDocument(documentContent);
+            }));
 
-            const detailedSchedule = await generateStudySchedule(documentSummaries, endDate);
+            const combinedSummaries = documentSummaries.join("\n\n");
+            const detailedSchedule = await generateStudySchedule(combinedSummaries, endDate, daysUntilEnd);
+
             response = {
                 statusCode: 200,
                 headers: {
@@ -132,7 +151,7 @@ async function streamToString(stream) {
 }
 
 async function summarizeDocument(documentContent) {
-    const OPENAI_API_KEY =;
+    const OPENAI_API_KEY = ;
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
@@ -166,19 +185,19 @@ async function summarizeDocument(documentContent) {
     }
 }
 
-async function generateStudySchedule(documentSummaries, endDate) {
+async function generateStudySchedule(documentSummaries, endDate, daysUntilEnd) {
     const OPENAI_API_KEY = ;
     if (!OPENAI_API_KEY) {
-        throw new Error("OPENAI_API_KEY environment variable is not set yet");
+        throw new Error("OPENAI_API_KEY environment variable is not set");
     }
 
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following summaries of study materials:\n\n${documentSummaries.join("\n\n")}\n\nPlease generate a study schedule to be completed by ${endDate}, with a focus on the areas needing the most improvement.`;
+    const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following summaries of study materials:\n\n${documentSummaries}\n\nPlease generate a study schedule to be completed by ${endDate} (${daysUntilEnd} days from today), with a focus on the areas needing the most improvement.`;
 
     try {
         const response = await axios.post(apiUrl, {
-            model: "gpt-4",  // Using GPT-4
+            model: "gpt-4o",  // Using GPT-4
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 { role: "user", content: prompt }
