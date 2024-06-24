@@ -162,7 +162,7 @@ async function summarizeDocument(documentContent) {
 
     try {
         const response = await axios.post(apiUrl, {
-            model: "gpt-4",  // Using GPT-4
+            model: "gpt-4o",  // Using GPT-4
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 { role: "user", content: prompt }
@@ -186,7 +186,7 @@ async function summarizeDocument(documentContent) {
 }
 
 async function generateStudySchedule(documentSummaries, endDate, daysUntilEnd) {
-    const OPENAI_API_KEY = ;
+    const OPENAI_API_KEY =;
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
