@@ -183,14 +183,14 @@ async function summarizeDocument(documentContent) {
         });
 
         return response.data.choices[0].message.content.trim();
-    } catch (error) {
+    } catch (error){
         console.error("Error calling OpenAI API:", error.response?.data || error.message);
         throw new Error("Failed to summarize document");
     }
 }
 
 async function generateStudySchedule(documentSummaries, endDate, daysUntilEnd) {
-    const OPENAI_API_KEY = ;
+    const OPENAI_API_KEY=;
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
