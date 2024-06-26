@@ -25,42 +25,28 @@ exports.handler = async (event) => {
 
     let response;
     try {
-        console.log("Event body:", event.body);
         let requestBody;
-        try {
-            requestBody = JSON.parse(event.body);
-            console.log("Parsed requestBody:", requestBody);
-        } catch (e) {
-            console.error("Invalid JSON input in event body", e);
-            return {
-                statusCode: 400,
-                body: JSON.stringify({ message: "Invalid JSON input in event body" }),
-            };
-        }
-
-        let bodyContent;
-        if (typeof requestBody.body === 'string') {
+        if (event.body) {
             try {
-                bodyContent = JSON.parse(requestBody.body);
-                console.log("Parsed bodyContent:", bodyContent);
+                requestBody = JSON.parse(event.body);
+                console.log("Parsed requestBody:", requestBody);
             } catch (e) {
-                console.error("Invalid JSON input in body field", e);
+                console.error("Invalid JSON input in event body", e);
                 return {
                     statusCode: 400,
-                    body: JSON.stringify({ message: "Invalid JSON input in body field" }),
+                    body: JSON.stringify({ message: "Invalid JSON input in event body" }),
                 };
             }
         } else {
-            bodyContent = requestBody;
+            requestBody = event;
+            console.log("Using event directly as requestBody:", requestBody);
         }
 
-        console.log("Final bodyContent:", bodyContent);
-
-        const { endDate } = bodyContent;
-        if (!endDate) {
+        const { endDate, folderName } = requestBody;
+        if (!endDate || !folderName) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ message: "Missing endDate" }),
+                body: JSON.stringify({ message: "Missing endDate or folderName" }),
             };
         }
 
@@ -73,18 +59,27 @@ exports.handler = async (event) => {
         }
 
         const params = {
-            TableName: 'studyMaterial-dev'
+            TableName: 'studyMaterial-dev',
+            FilterExpression: "folderName = :folderName",
+            ExpressionAttributeValues: {
+                ":folderName": { S: folderName }
+            }
         };
 
         const command = new ScanCommand(params);
         const data = await dynamoClient.send(command);
 
         if (data.Items) {
-            const documentSummaries = await Promise.all(data.Items.map(async (item) => {
+            let documentSummaries = [];
+            for (const item of data.Items) {
                 const s3Url = item.s3Url.S;
                 const documentContent = await fetchS3Content(s3Url);
-                return summarizeDocument(documentContent);
-            }));
+
+                // Chunking
+                const chunks = chunkDocument(documentContent);
+                const chunkSummaries = await Promise.all(chunks.map(chunk => summarizeDocument(chunk)));
+                documentSummaries.push(...chunkSummaries);
+            }
 
             const combinedSummaries = documentSummaries.join("\n\n");
             const detailedSchedule = await generateStudySchedule(combinedSummaries, endDate, daysUntilEnd);
@@ -141,13 +136,22 @@ async function fetchS3Content(s3Url) {
     return await streamToString(stream);
 }
 
-async function streamToString(stream) {
+function streamToString(stream) {
     return new Promise((resolve, reject) => {
         const chunks = [];
         stream.on('data', (chunk) => chunks.push(chunk));
         stream.on('error', (err) => reject(err));
         stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
     });
+}
+
+function chunkDocument(documentContent) {
+    const chunkSize = 20; // Define appropriate chunk size
+    const chunks = [];
+    for (let i = 0; i < documentContent.length; i += chunkSize) {
+        chunks.push(documentContent.slice(i, i + chunkSize));
+    }
+    return chunks;
 }
 
 async function summarizeDocument(documentContent) {
@@ -193,7 +197,16 @@ async function generateStudySchedule(documentSummaries, endDate, daysUntilEnd) {
 
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following summaries of study materials:\n\n${documentSummaries}\n\nPlease generate a study schedule to be completed by ${endDate} (${daysUntilEnd} days from today), with a focus on the areas needing the most improvement.`;
+    const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following summaries of study materials:\n\n${documentSummaries}\n\nPlease generate a study schedule to be completed by ${endDate} (${daysUntilEnd} days from today), with a focus on the areas needing the most improvement. The schedule should be organized by week, and each week should include bullet points of tasks to complete. Format it like this:
+
+Week 1:
+- bullet 1
+- bullet 2
+
+Week 2:
+- bullet 1
+- bullet 2
+`;
 
     try {
         const response = await axios.post(apiUrl, {
