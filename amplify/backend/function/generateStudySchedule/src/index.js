@@ -155,7 +155,7 @@ function chunkDocument(documentContent) {
 }
 
 async function summarizeDocument(documentContent) {
-    const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+    const OPENAI_API_KEY = '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';
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
@@ -188,11 +188,13 @@ async function summarizeDocument(documentContent) {
         throw new Error("Failed to summarize document");
     }
 }
+
 async function generateStudySchedule(documentSummaries, endDate, daysUntilEnd) {
-    const OPENAI_API_KEY=;
+    const OPENAI_API_KEY= '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';
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
+
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following summaries of study materials:\n\n${documentSummaries}\n\nPlease generate a study schedule to be completed by ${endDate} (${daysUntilEnd} days from today), with a focus on the areas needing the most improvement. The schedule should be organized by week, and each week should include bullet points of tasks to complete. Format it like this:
