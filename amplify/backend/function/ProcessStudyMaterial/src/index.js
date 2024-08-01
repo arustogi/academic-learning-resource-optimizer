@@ -1,6 +1,7 @@
 const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const { S3Client, PutObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
 const pdf = require('pdf-parse');
+const mammoth = require('mammoth');
 const { v4: uuidv4 } = require('uuid');
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
@@ -47,12 +48,15 @@ exports.handler = async (event) => {
         const startTime = Date.now();
 
         let plainTextContent;
+        const buffer = Buffer.from(documentContent, 'base64');
         if (fileType === 'application/pdf') {
-            const buffer = Buffer.from(documentContent, 'base64');
             const pdfData = await pdf(buffer);
             plainTextContent = pdfData.text;
+        } else if (fileType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+            const docxData = await mammoth.extractRawText({ buffer });
+            plainTextContent = docxData.value;
         } else {
-            plainTextContent = Buffer.from(documentContent, 'base64').toString('utf-8');
+            plainTextContent = buffer.toString('utf-8');
         }
 
         const documentId = uuidv4();
@@ -88,7 +92,7 @@ exports.handler = async (event) => {
         const s3Params = {
             Bucket: BUCKET_NAME,
             Key: s3Key,
-            Body: Buffer.from(documentContent, 'base64'),
+            Body: buffer,
             ContentType: fileType,
             Metadata: {
                 'document-title': documentTitle
@@ -114,7 +118,8 @@ exports.handler = async (event) => {
                 fileType: { S: fileType },
                 fileName: { S: fileName },
                 folderName: { S: folderName },
-                uploadedAt: { S: new Date().toISOString() }
+                uploadedAt: { S: new Date().toISOString() },
+                content: { S: plainTextContent } // Store the parsed content
             }
         };
 
