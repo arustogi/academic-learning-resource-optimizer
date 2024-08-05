@@ -30,6 +30,16 @@
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    },
+    "getSavedSchedules": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "saveSchedule": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
     }
   },
   "parameters": {
@@ -65,6 +75,38 @@
         }
       ]
     },
+    "AMPLIFY_function_extractDeadlines_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "extractDeadlines"
+        }
+      ]
+    },
+    "AMPLIFY_function_extractDeadlines_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "extractDeadlines"
+        }
+      ]
+    },
+    "AMPLIFY_function_generateEmbeddings_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "generateEmbeddings"
+        }
+      ]
+    },
+    "AMPLIFY_function_generateEmbeddings_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "generateEmbeddings"
+        }
+      ]
+    },
     "AMPLIFY_function_generateStudySchedule_deploymentBucketName": {
       "usedBy": [
         {
@@ -78,6 +120,38 @@
         {
           "category": "function",
           "resourceName": "generateStudySchedule"
+        }
+      ]
+    },
+    "AMPLIFY_function_getSavedSchedules_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getSavedSchedules"
+        }
+      ]
+    },
+    "AMPLIFY_function_getSavedSchedules_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getSavedSchedules"
+        }
+      ]
+    },
+    "AMPLIFY_function_saveSchedule_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "saveSchedule"
+        }
+      ]
+    },
+    "AMPLIFY_function_saveSchedule_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "saveSchedule"
         }
       ]
     }

@@ -68,7 +68,7 @@ async function fetchStudyMaterials(folderName) {
 }
 
 async function parseDeadlinesWithOpenAI(studyMaterials) {
-    const OPENAI_API_KEY = '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';
+    const OPENAI_API_KEY = '';
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     const deadlines = [];
@@ -77,7 +77,7 @@ async function parseDeadlinesWithOpenAI(studyMaterials) {
 
         try {
             const response = await axios.post(apiUrl, {
-                model: "gpt-4",
+                model: "gpt-4o",
                 messages: [
                     { role: "system", content: "You are a helpful assistant." },
                     { role: "user", content: prompt }

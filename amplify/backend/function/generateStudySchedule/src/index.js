@@ -1,10 +1,8 @@
 const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
-const { S3Client, GetObjectCommand } = require("@aws-sdk/client-s3");
 const axios = require('axios');
 const { differenceInDays, parseISO } = require('date-fns');
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
-const s3Client = new S3Client({ region: "us-west-2" });
 
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
@@ -72,17 +70,24 @@ exports.handler = async (event) => {
         if (data.Items) {
             let documentSummaries = [];
             for (const item of data.Items) {
-                const s3Url = item.s3Url.S;
-                const documentContent = await fetchS3Content(s3Url);
+                const documentContent = item.content.S;
 
-                // Chunking
+                console.log("Starting to summarize document content...");
                 const chunks = chunkDocument(documentContent);
                 const chunkSummaries = await Promise.all(chunks.map(chunk => summarizeDocument(chunk)));
                 documentSummaries.push(...chunkSummaries);
+
+                console.log("Summarization completed.");
             }
 
+            console.log("Completed summarizing documents.");
+
             const combinedSummaries = documentSummaries.join("\n\n");
+            console.log("Starting to generate study schedule...");
             const detailedSchedule = await generateStudySchedule(combinedSummaries, endDate, daysUntilEnd);
+
+            console.log("Study schedule generation completed.");
+            console.log("Completed generating study schedule.");
 
             response = {
                 statusCode: 200,
@@ -116,37 +121,13 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: "Internal server error", error: error.message }),
         };
     }
+
+    console.log("Sending response:", JSON.stringify(response));
     return response;
 };
 
-async function fetchS3Content(s3Url) {
-    const bucketName = s3Url.split(".s3.amazonaws.com/")[0].split("//")[1];
-    const key = s3Url.split(".s3.amazonaws.com/")[1];
-
-    const params = {
-        Bucket: bucketName,
-        Key: key
-    };
-
-    const command = new GetObjectCommand(params);
-    const response = await s3Client.send(command);
-
-    const stream = response.Body;
-
-    return await streamToString(stream);
-}
-
-function streamToString(stream) {
-    return new Promise((resolve, reject) => {
-        const chunks = [];
-        stream.on('data', (chunk) => chunks.push(chunk));
-        stream.on('error', (err) => reject(err));
-        stream.on('end', () => resolve(Buffer.concat(chunks).toString('utf-8')));
-    });
-}
-
 function chunkDocument(documentContent) {
-    const chunkSize = 20; // Define appropriate chunk size
+    const chunkSize = 4000; // Define appropriate chunk size
     const chunks = [];
     for (let i = 0; i < documentContent.length; i += chunkSize) {
         chunks.push(documentContent.slice(i, i + chunkSize));
@@ -155,7 +136,8 @@ function chunkDocument(documentContent) {
 }
 
 async function summarizeDocument(documentContent) {
-    const OPENAI_API_KEY = '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';
+    console.log("Starting to summarize document content...");
+    const OPENAI_API_KEY = 'sk-proj-e5bwJAxwzkz0MeVGKyqBT3BlbkFJPHC8E6z3QzoiaWTXlBnQ';
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
@@ -166,7 +148,7 @@ async function summarizeDocument(documentContent) {
 
     try {
         const response = await axios.post(apiUrl, {
-            model: "gpt-4o",  // Using GPT-4
+            model: "gpt-4",
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 { role: "user", content: prompt }
@@ -182,15 +164,17 @@ async function summarizeDocument(documentContent) {
             }
         });
 
+        console.log("Summarization completed.");
         return response.data.choices[0].message.content.trim();
-    } catch (error){
+    } catch (error) {
         console.error("Error calling OpenAI API:", error.response?.data || error.message);
         throw new Error("Failed to summarize document");
     }
 }
 
 async function generateStudySchedule(documentSummaries, endDate, daysUntilEnd) {
-    const OPENAI_API_KEY= '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';
+    console.log("Starting to generate study schedule...");
+    const OPENAI_API_KEY = 'sk-proj-e5bwJAxwzkz0MeVGKyqBT3BlbkFJPHC8E6z3QzoiaWTXlBnQ';
     if (!OPENAI_API_KEY) {
         throw new Error("OPENAI_API_KEY environment variable is not set");
     }
@@ -210,7 +194,7 @@ Week 2:
 
     try {
         const response = await axios.post(apiUrl, {
-            model: "gpt-4o",  // Using GPT-4
+            model: "gpt-4o",
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 { role: "user", content: prompt }
@@ -226,6 +210,7 @@ Week 2:
             }
         });
 
+        console.log("Study schedule generation completed.");
         return response.data.choices[0].message.content.trim();
     } catch (error) {
         console.error("Error calling OpenAI API:", error.response?.data || error.message);

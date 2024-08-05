@@ -13,20 +13,38 @@
     },
     "categories": {
       "storage": {
-        "studyMaterial": {}
+        "studyMaterial": {},
+        "UserPerformance": {},
+        "Problems": {}
       },
       "function": {
         "ProcessStudyMaterial": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/ProcessStudyMaterial-4e6375697a4b4967754d-build.zip"
+          "s3Key": "amplify-builds/ProcessStudyMaterial-4263506b435a5961614d-build.zip"
         },
         "generateStudySchedule": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateStudySchedule-47382b66796d75663564-build.zip"
+          "s3Key": "amplify-builds/generateStudySchedule-694f3465334e30597475-build.zip"
         },
         "createFolder": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
           "s3Key": "amplify-builds/createFolder-6c64493343572f475271-build.zip"
+        },
+        "saveSchedule": {
+          "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
+          "s3Key": "amplify-builds/saveSchedule-483137557265474a4a38-build.zip"
+        },
+        "getSavedSchedules": {
+          "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
+          "s3Key": "amplify-builds/getSavedSchedules-454330724a5332574743-build.zip"
+        },
+        "generateEmbeddings": {
+          "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
+          "s3Key": "amplify-builds/generateEmbeddings-62515755757234396f41-build.zip"
+        },
+        "extractDeadlines": {
+          "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
+          "s3Key": "amplify-builds/extractDeadlines-78566954726b654c7263-build.zip"
         }
       },
       "api": {

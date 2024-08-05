@@ -8,6 +8,14 @@ const awsmobile = {
         {
             "tableName": "studyMaterial-dev",
             "region": "us-west-2"
+        },
+        {
+            "tableName": "UserPerformance-dev",
+            "region": "us-west-2"
+        },
+        {
+            "tableName": "Problems-dev",
+            "region": "us-west-2"
         }
     ],
     "aws_cloud_logic_custom": [

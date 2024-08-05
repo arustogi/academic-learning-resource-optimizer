@@ -1,5 +1,5 @@
 
-    const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const axios = require('axios');
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
@@ -46,7 +46,7 @@ exports.handler = async (event) => {
 };
 
 async function generateEmbeddings(documentContent) {
-    const OPENAI_API_KEY = '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';
+    const OPENAI_API_KEY = 'sk-None-nHY39bQrbB9LLOM1ZvnFT3BlbkFJepWc0krgy8dsXqkQiFK8';
     
     const apiUrl = 'https://api.openai.com/v1/embeddings';
 
