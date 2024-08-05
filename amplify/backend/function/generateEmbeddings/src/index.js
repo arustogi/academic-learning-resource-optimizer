@@ -46,7 +46,7 @@ exports.handler = async (event) => {
 };
 
 async function generateEmbeddings(documentContent) {
-    const OPENAI_API_KEY = 'sk-None-nHY39bQrbB9LLOM1ZvnFT3BlbkFJepWc0krgy8dsXqkQiFK8';
+    const OPENAI_API_KEY = '';
     
     const apiUrl = 'https://api.openai.com/v1/embeddings';
 

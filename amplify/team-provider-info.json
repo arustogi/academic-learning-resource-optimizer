@@ -24,7 +24,7 @@
         },
         "generateStudySchedule": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateStudySchedule-694f3465334e30597475-build.zip"
+          "s3Key": "amplify-builds/generateStudySchedule-52434c4e6a4738595143-build.zip"
         },
         "createFolder": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
@@ -44,7 +44,7 @@
         },
         "extractDeadlines": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/extractDeadlines-78566954726b654c7263-build.zip"
+          "s3Key": "amplify-builds/extractDeadlines-6e75575442666d4c316b-build.zip"
         }
       },
       "api": {
