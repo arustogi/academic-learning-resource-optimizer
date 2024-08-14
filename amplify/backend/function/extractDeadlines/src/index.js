@@ -7,13 +7,8 @@ exports.handler = async (event) => {
     const { folderName } = event;
 
     try {
-        // Fetch study materials
         const studyMaterials = await fetchStudyMaterials(folderName);
-
-        // Parse deadlines using OpenAI
         const deadlines = await parseDeadlinesWithOpenAI(studyMaterials);
-
-        // Update DynamoDB with deadlines
         const params = {
             TableName: 'studyMaterialDeadlines',
             Key: { folderName: { S: folderName } },
@@ -49,12 +44,9 @@ async function fetchStudyMaterials(folderName) {
 
     const command = new ScanCommand(params);
     const data = await dynamoClient.send(command);
-
-    // Log the data received from DynamoDB for debugging
     console.log("Data received from DynamoDB:", JSON.stringify(data, null, 2));
 
     return data.Items.map(item => {
-        // Check if the item has the expected attributes
         if (!item.id || !item.id.S || !item.content || !item.content.S) {
             console.warn("Item missing expected attributes:", JSON.stringify(item, null, 2));
             return null;
@@ -64,11 +56,11 @@ async function fetchStudyMaterials(folderName) {
             documentId: item.id.S,
             content: item.content.S
         };
-    }).filter(item => item !== null); // Filter out any null values
+    }).filter(item => item !== null); 
 }
 
 async function parseDeadlinesWithOpenAI(studyMaterials) {
-    const OPENAI_API_KEY = '';
+    const OPENAI_API_KEY = ''
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     const deadlines = [];

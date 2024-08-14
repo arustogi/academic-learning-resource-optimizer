@@ -1,18 +1,19 @@
 const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const { S3Client, PutObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { LambdaClient, InvokeCommand } = require("@aws-sdk/client-lambda");
 const pdf = require('pdf-parse');
 const mammoth = require('mammoth');
 const { v4: uuidv4 } = require('uuid');
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
 const s3Client = new S3Client({ region: "us-west-2" });
+const lambdaClient = new LambdaClient({ region: "us-west-2" });
 
 const BUCKET_NAME = "study-material-bucket";
 
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
-    // Handle preflight request
     if (event.httpMethod === 'OPTIONS') {
         console.log("Handling OPTIONS request");
         return {
@@ -59,12 +60,11 @@ exports.handler = async (event) => {
             plainTextContent = buffer.toString('utf-8');
         }
 
-        const documentId = uuidv4();
-        const s3Key = `${folderName}/${documentId}/${fileName}`;
+        const documentID = uuidv4();
+        const s3Key = `${folderName}/${documentID}/${fileName}`;
 
         console.log(`File processing completed in ${(Date.now() - startTime) / 1000} seconds`);
         
-        // Check if the file already exists
         const headParams = {
             Bucket: BUCKET_NAME,
             Key: s3Key,
@@ -88,7 +88,6 @@ exports.handler = async (event) => {
             }
         }
 
-        // Upload document to S3
         const s3Params = {
             Bucket: BUCKET_NAME,
             Key: s3Key,
@@ -108,11 +107,11 @@ exports.handler = async (event) => {
 
         console.log("S3 upload completed, URL:", s3Url);
 
-        // Store the S3 URL in DynamoDB
+        
         const dynamoParams = {
             TableName: 'studyMaterial-dev',
             Item: {
-                id: { S: documentId },
+                id: { S: documentID },
                 documentTitle: { S: documentTitle },
                 s3Url: { S: s3Url },
                 fileType: { S: fileType },
@@ -130,6 +129,7 @@ exports.handler = async (event) => {
 
         console.log("DynamoDB insert completed");
 
+        // Immediately respond to the user
         response = {
             statusCode: 200,
             headers: {
@@ -140,6 +140,21 @@ exports.handler = async (event) => {
             body: JSON.stringify({ message: "Document uploaded successfully", s3Url }),
         };
         console.log("Document uploaded successfully:", response);
+
+        // Invoke generateEmbeddings
+        const invokeParams = {
+            FunctionName: "generateEmbeddings-dev",
+            InvocationType: 'Event', // Asynchronous invocation
+            Payload: JSON.stringify({
+                folderName,
+                documentID,
+                documentContent: plainTextContent
+            })
+        };
+
+        await lambdaClient.send(new InvokeCommand(invokeParams));
+        console.log("generateEmbeddings  invoked");
+
     } catch (error) {
         console.error("Error uploading document:", error);
         response = {

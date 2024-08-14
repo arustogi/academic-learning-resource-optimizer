@@ -6,6 +6,7 @@
   "dependencies": {
     "bowser": "^2.11.0",
     "fast-xml-parser": "^4.2.5",
+    "mammoth": "^1.8.0",
     "mnemonist": "^0.38.3",
     "obliterator": "^1.6.1",
     "pdf-parse": "^1.1.1",

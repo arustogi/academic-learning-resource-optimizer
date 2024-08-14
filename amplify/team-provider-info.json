@@ -20,11 +20,11 @@
       "function": {
         "ProcessStudyMaterial": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/ProcessStudyMaterial-4263506b435a5961614d-build.zip"
+          "s3Key": "amplify-builds/ProcessStudyMaterial-744a3249705a2b455274-build.zip"
         },
         "generateStudySchedule": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateStudySchedule-52434c4e6a4738595143-build.zip"
+          "s3Key": "amplify-builds/generateStudySchedule-4c49316d4b2f5a2f565a-build.zip"
         },
         "createFolder": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
@@ -40,7 +40,7 @@
         },
         "generateEmbeddings": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateEmbeddings-62515755757234396f41-build.zip"
+          "s3Key": "amplify-builds/generateEmbeddings-6a314454427772497058-build.zip"
         },
         "extractDeadlines": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",

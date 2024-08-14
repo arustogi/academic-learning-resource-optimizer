@@ -1,11 +1,11 @@
-const { DynamoDBClient, GetItemCommand, ScanCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, GetItemCommand, ScanCommand, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const axios = require('axios');
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
+
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
 
-    // Handle preflight request
     if (event.httpMethod === 'OPTIONS') {
         return {
             statusCode: 200,
@@ -22,7 +22,6 @@ exports.handler = async (event) => {
     try {
         let requestBody;
         if (event.body) {
-            // Case when event has a body field, typically from API Gateway
             try {
                 requestBody = JSON.parse(event.body);
                 console.log("Parsed requestBody from body:", requestBody);
@@ -34,22 +33,24 @@ exports.handler = async (event) => {
                 };
             }
         } else {
-            // Direct invocation or test event case
             requestBody = event;
             console.log("Using event directly as requestBody:", requestBody);
         }
 
-        const { folderName } = requestBody;
-        if (!folderName) {
+        const { folderName, scheduleName } = requestBody;
+        if (!folderName || !scheduleName) {
             return {
                 statusCode: 400,
-                body: JSON.stringify({ message: "Missing folderName" }),
+                body: JSON.stringify({ message: "Missing folderName or scheduleName" }),
             };
         }
 
         const deadlines = await fetchDeadlines(folderName);
         const embeddings = await fetchEmbeddings(folderName);
         const detailedSchedule = await generateStudySchedule(embeddings, deadlines);
+
+        // Save the generated schedule to DynamoDB
+        await saveScheduleToDynamoDB(scheduleName, folderName, detailedSchedule);
 
         response = {
             statusCode: 200,
@@ -76,9 +77,6 @@ exports.handler = async (event) => {
 
     return response;
 };
-
-
-
 
 async function fetchDeadlines(folderName) {
     const params = {
@@ -128,25 +126,15 @@ async function fetchEmbeddings(folderName) {
     }).filter(item => item !== null);
 }
 
-
 async function generateStudySchedule(embeddings, deadlines) {
-    const OPENAI_API_KEY = "";
+    const OPENAI_API_KEY = '';
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following embeddings of study materials and deadlines:\n\n${JSON.stringify(embeddings)}\n\n${JSON.stringify(deadlines)}\n\nPlease generate a study schedule in a tabular format day by day, with a focus on the areas needing the most improvement. The schedule should be organized by week, and each week should include bullet points of tasks to complete. Format it like this:
-
-Week 1:
-- bullet 1
-- bullet 2
-
-Week 2:
-- bullet 1
-- bullet 2
-`;
+    const prompt = `You are an AI assistant tasked with creating a detailed study schedule. Given the following embeddings of study materials and deadlines:\n\n${JSON.stringify(embeddings)}\n\n${JSON.stringify(deadlines)}\n\nPlease generate a study schedule in JSON format, where each key is a day (e.g., "Day 1", "Day 2") and the value is an array of tasks. The schedule should be organized by days of the week. Example: {"Day 1": ["Task 1", "Task 2"], "Day 2": ["Task 1", "Task 2"]}.`;;
 
     try {
         const response = await axios.post(apiUrl, {
-            model: "gpt-4",
+            model: "gpt-4o",
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
                 { role: "user", content: prompt }
@@ -166,5 +154,26 @@ Week 2:
     } catch (error) {
         console.error("Error calling OpenAI API:", error.response?.data || error.message);
         throw new Error("Failed to generate study schedule");
+    }
+}
+async function saveScheduleToDynamoDB(scheduleName, folderName, schedule) {
+    const params = {
+        TableName: 'saved-scheds',
+        Item: {
+            ID: { S: `${scheduleName}-${folderName}` }, 
+            scheduleName: { S: scheduleName },
+            folderName: { S: folderName },
+            schedule: { S: JSON.stringify(schedule) }, 
+            savedAt: { S: new Date().toISOString() }
+        }
+    };
+
+    try {
+        const command = new PutItemCommand(params);
+        await dynamoClient.send(command);
+        console.log("Study schedule saved to DynamoDB:", params);
+    } catch (error) {
+        console.error("Error saving study schedule to DynamoDB:", error);
+        throw new Error("Failed to save study schedule to DynamoDB");
     }
 }

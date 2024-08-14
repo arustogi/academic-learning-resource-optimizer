@@ -1,79 +1,103 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import ReactMarkdown from 'react-markdown';
+import { TextField, Button, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
 
 const GenerateSchedule = ({ apiUrl, setOutput }) => {
-    const [endDate, setEndDate] = useState('');
-    const [folderName, setFolderName] = useState('');
+  const [folderName, setFolderName] = useState('');
+  const [scheduleName, setScheduleName] = useState('');
+  const [message, setMessage] = useState('');
+  const [schedule, setSchedule] = useState(null); 
 
-    const handleGenerateSchedule = async () => {
-        if (!endDate || !folderName) {
-            alert('Please enter all fields');
-            return;
-        }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        try {
-            const response = await axios.post(`${apiUrl}/generateSchedule`, { endDate, folderName }, { timeout: 60000 });
+    if (!folderName || !scheduleName) {
+      setMessage('Please enter both a folder name and a schedule name.');
+      return;
+    }
 
-            if (response && response.data) {
-                console.log('Full response data:', response.data); // Added for full response debugging
-                
-                // Parse the response data to get the schedule
-                const parsedResponse = JSON.parse(response.data.body);
-                const schedule = parsedResponse.schedule || parsedResponse;
+    try {
+      console.log('Sending request to API...');
+      const response = await axios.post(`${apiUrl}/generateSchedule`, { folderName, scheduleName });
+      console.log('Raw API Response:', response.data);
 
-                console.log('Parsed Schedule:', schedule); // Log the parsed schedule for debugging
+      // Parse the JSON string in the body
+      const parsedBody = JSON.parse(response.data.body);
+      console.log('Parsed Body:', parsedBody);
+      const rawSchedule = parsedBody.schedule;
+      const jsonMatch = rawSchedule.match(/```json\s+({[\s\S]*})\s+```/);
 
-                if (typeof schedule === 'string') {
-                    formatAndSetOutput(schedule);
-                } else if (Array.isArray(schedule)) {
-                    formatAndSetOutput(schedule.join('\n'));
-                } else {
-                    setOutput('Error: Schedule is in an unexpected format');
-                    console.log('Unexpected schedule format:', JSON.stringify(schedule, null, 2));
-                }
-            } else {
-                setOutput('Error: No response data');
-            }
-        } catch (error) {
-            console.error('Error fetching schedule:', error);
-            if (error.response && error.response.data) {
-                setOutput(`Error: ${error.response.data.message}`);
-                console.log('Error response data:', JSON.stringify(error.response.data, null, 2)); // Log the error response data
-            } else {
-                setOutput(`Error: ${error.message}`);
-            }
-        }
-    };
+      if (!jsonMatch) {
+        throw new Error("Failed to extract JSON from the response");
+      }
 
-    const formatAndSetOutput = (schedule) => {
-        try {
-            console.log('Formatting schedule:', schedule); // Log the schedule before formatting
+      const cleanSchedule = jsonMatch[1]; 
+      console.log('Extracted JSON:', cleanSchedule);
+      const scheduleObject = JSON.parse(cleanSchedule);
+      console.log('Parsed Schedule Object:', scheduleObject);
+      setSchedule(scheduleObject); 
+      setMessage('Schedule generated successfully.');
+      setOutput(cleanSchedule);
 
-            const formattedSchedule = schedule.split('\n').map((line) => {
-                if (line.startsWith('Week')) {
-                    return `### ${line}`;
-                } else if (line.trim()) {
-                    return `- ${line}`;
-                }
-                return line;
-            }).join('\n');
+    } catch (error) {
+      console.error('Error generating schedule:', error);
+      setMessage('Error generating schedule.');
+      setOutput('Error generating schedule.');
+    }
+  };
 
-            setOutput(<ReactMarkdown>{formattedSchedule}</ReactMarkdown>);
-        } catch (error) {
-            console.error('Error formatting schedule:', error);
-            setOutput('Error: Could not format the schedule properly');
-        }
-    };
 
-    return (
-        <div>
-            <h2>Generate Study Schedule</h2>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="End Date" />
-            <input type="text" value={folderName} onChange={(e) => setFolderName(e.target.value)} placeholder="Folder Name" />
-            <button onClick={handleGenerateSchedule}>Generate Schedule</button>
-        </div>
-    );
+  return (
+    <Paper style={{ padding: '20px', marginTop: '20px' }}>
+      <Typography variant="h5" gutterBottom style={{ color: '#3f51b5' }}>
+        Generate Schedule
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          label="Folder Name"
+          value={folderName}
+          onChange={(e) => setFolderName(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Schedule Name"
+          value={scheduleName}
+          onChange={(e) => setScheduleName(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: '16px' }}>
+          Generate Schedule
+        </Button>
+      </form>
+      {message && <Typography variant="body1" color="textSecondary" style={{ marginTop: '16px' }}>{message}</Typography>}
+      {schedule && (
+        <Table style={{ marginTop: '16px' }}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Day</TableCell>
+              <TableCell>Tasks</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.entries(schedule).map(([day, tasks], index) => (
+              <TableRow key={index}>
+                <TableCell>{day}</TableCell>
+                <TableCell>
+                  <ul>
+                    {tasks.map((task, taskIndex) => (
+                      <li key={taskIndex}>{task}</li>
+                    ))}
+                  </ul>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Paper>
+  );
 };
 
 export default GenerateSchedule;
