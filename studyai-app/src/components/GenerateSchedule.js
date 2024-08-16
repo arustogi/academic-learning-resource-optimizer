@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { TextField, Button, Typography, Paper, Table, TableBody, TableCell, TableHead, TableRow } from '@mui/material';
+import { TextField, Button, Typography, Paper, CircularProgress } from '@mui/material';
 
 const GenerateSchedule = ({ apiUrl, setOutput }) => {
   const [folderName, setFolderName] = useState('');
   const [scheduleName, setScheduleName] = useState('');
   const [message, setMessage] = useState('');
-  const [schedule, setSchedule] = useState(null); 
+  const [schedule, setSchedule] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,32 +20,41 @@ const GenerateSchedule = ({ apiUrl, setOutput }) => {
     try {
       console.log('Sending request to API...');
       const response = await axios.post(`${apiUrl}/generateSchedule`, { folderName, scheduleName });
-      console.log('Raw API Response:', response.data);
 
-      // Parse the JSON string in the body
-      const parsedBody = JSON.parse(response.data.body);
-      console.log('Parsed Body:', parsedBody);
-      const rawSchedule = parsedBody.schedule;
-      const jsonMatch = rawSchedule.match(/```json\s+({[\s\S]*})\s+```/);
-
-      if (!jsonMatch) {
-        throw new Error("Failed to extract JSON from the response");
+      if (response.status === 202) {
+        setMessage('Schedule generation process has started. Fetching the latest schedule...');
+        setIsLoading(true);
+        pollForCompletion(); // Start polling for the latest schedule
+      } else {
+        setMessage('Unexpected response from the server.');
       }
 
-      const cleanSchedule = jsonMatch[1]; 
-      console.log('Extracted JSON:', cleanSchedule);
-      const scheduleObject = JSON.parse(cleanSchedule);
-      console.log('Parsed Schedule Object:', scheduleObject);
-      setSchedule(scheduleObject); 
-      setMessage('Schedule generated successfully.');
-      setOutput(cleanSchedule);
-
     } catch (error) {
-      console.error('Error generating schedule:', error);
-      setMessage('Error generating schedule.');
-      setOutput('Error generating schedule.');
+      console.error('Error starting schedule generation:', error);
+      setMessage('Error starting schedule generation.');
     }
-  };
+};
+
+
+const pollForCompletion = async () => {
+  try {
+      const response = await axios.get(`${apiUrl}/getLatestSchedule`, {
+          params: { folderName }
+      });
+
+      if (response.status === 200 && response.data.schedule) {
+          setMessage('Schedule generation complete.');
+          setSchedule(response.data.schedule); // Display the schedule
+          setIsLoading(false); // Stop loading indicator
+      } else {
+          setTimeout(pollForCompletion, 5000); // Poll again after 5 seconds
+      }
+  } catch (error) {
+      console.error('Error polling for completion:', error);
+      setMessage('Error polling for completion.');
+      setIsLoading(false); // Stop loading indicator on error
+  }
+};
 
 
   return (
@@ -72,30 +82,8 @@ const GenerateSchedule = ({ apiUrl, setOutput }) => {
         </Button>
       </form>
       {message && <Typography variant="body1" color="textSecondary" style={{ marginTop: '16px' }}>{message}</Typography>}
-      {schedule && (
-        <Table style={{ marginTop: '16px' }}>
-          <TableHead>
-            <TableRow>
-              <TableCell>Day</TableCell>
-              <TableCell>Tasks</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {Object.entries(schedule).map(([day, tasks], index) => (
-              <TableRow key={index}>
-                <TableCell>{day}</TableCell>
-                <TableCell>
-                  <ul>
-                    {tasks.map((task, taskIndex) => (
-                      <li key={taskIndex}>{task}</li>
-                    ))}
-                  </ul>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+      {isLoading && <CircularProgress style={{ marginTop: '16px' }} />}
+      {schedule && <pre style={{ marginTop: '16px', whiteSpace: 'pre-wrap' }}>{JSON.stringify(schedule, null, 2)}</pre>}
     </Paper>
   );
 };

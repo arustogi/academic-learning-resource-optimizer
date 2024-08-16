@@ -60,7 +60,7 @@ async function fetchStudyMaterials(folderName) {
 }
 
 async function parseDeadlinesWithOpenAI(studyMaterials) {
-    const OPENAI_API_KEY = ''
+    const OPENAI_API_KEY = '';
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     const deadlines = [];

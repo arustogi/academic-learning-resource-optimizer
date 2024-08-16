@@ -31,6 +31,16 @@
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
     },
+    "generateStudyScheduleWorker": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "getLatestSched": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
     "getSavedSchedules": {
       "build": true,
       "providerPlugin": "awscloudformation",
@@ -107,6 +117,22 @@
         }
       ]
     },
+    "AMPLIFY_function_generateStudyScheduleWorker_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "generateStudyScheduleWorker"
+        }
+      ]
+    },
+    "AMPLIFY_function_generateStudyScheduleWorker_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "generateStudyScheduleWorker"
+        }
+      ]
+    },
     "AMPLIFY_function_generateStudySchedule_deploymentBucketName": {
       "usedBy": [
         {
@@ -120,6 +146,22 @@
         {
           "category": "function",
           "resourceName": "generateStudySchedule"
+        }
+      ]
+    },
+    "AMPLIFY_function_getLatestSched_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getLatestSched"
+        }
+      ]
+    },
+    "AMPLIFY_function_getLatestSched_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "getLatestSched"
         }
       ]
     },
