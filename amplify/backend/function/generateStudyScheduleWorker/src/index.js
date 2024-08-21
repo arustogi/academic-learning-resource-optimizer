@@ -14,8 +14,16 @@ exports.handler = async (event) => {
         await saveScheduleToDynamoDB(scheduleName, folderName, detailedSchedule);
 
         console.log("Study schedule generated and saved successfully.");
+        response = {
+            statusCode: 200,
+            body: JSON.stringify({ message: "Study schedule created successfully", schedule: detailedSchedule }),
+        };
     } catch (error) {
         console.error("Error generating or saving study schedule:", error);
+        response = {
+            statusCode: 500,
+            body: JSON.stringify({ message: "Internal server error", error: error.message }),
+        };
     }
 };
 
@@ -56,7 +64,7 @@ async function fetchEmbeddings(folderName) {
         }
 
         try {
-            const embeddings = JSON.parse(item.embeddings.S); // Parse the string back into an array
+            const embeddings = JSON.parse(item.embeddings.S); 
             return {
                 documentID: item.documentID.S,
                 embeddings: embeddings
@@ -74,6 +82,14 @@ async function generateSchedule(embeddings, deadlines) {
 
     console.log("Embeddings passed to OpenAI:", JSON.stringify(embeddings));
     console.log("Deadlines passed to OpenAI:", JSON.stringify(deadlines));
+    const chunkSize = 4000; 
+    const chunks = [];
+    for (let i = 0; i < embeddings.length; i += chunkSize) {
+        chunks.push(embeddings.slice(i, i + chunkSize));
+    }
+
+    let completeSchedule = "";
+
     const OPENAI_API_KEY = '';
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
@@ -85,7 +101,7 @@ async function generateSchedule(embeddings, deadlines) {
     
     And here are the embeddings:\n\n${JSON.stringify(embeddings)}
     
-    Please generate the study schedule in JSON format, where each day includes tasks and the relevant materials to be used. Each material cited must be represented by the embeddings provided.`;
+    Please generate the study schedule in JSON format, where each day includes tasks and the relevant materials to be used.`;
 
     try {
         const response = await axios.post(apiUrl, {
@@ -104,12 +120,13 @@ async function generateSchedule(embeddings, deadlines) {
                 'Content-Type': 'application/json'
             }
         });
-
-        return response.data.choices[0].message.content.trim();
+        completeSchedule += response.data.choices[0].message.content.trim() + "\n";
+        
     } catch (error) {
         console.error("Error calling OpenAI API:", error.response?.data || error.message);
         throw new Error("Failed to generate study schedule");
     }
+    return completeSchedule.trim();
 }
 
 async function saveScheduleToDynamoDB(scheduleName, folderName, schedule) {

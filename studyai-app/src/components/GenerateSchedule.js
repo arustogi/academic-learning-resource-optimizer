@@ -21,7 +21,7 @@ const GenerateSchedule = ({ apiUrl, setOutput }) => {
       console.log('Sending request to API...');
       const response = await axios.post(`${apiUrl}/generateSchedule`, { folderName, scheduleName });
 
-      if (response.status === 202) {
+      if (response.status === 200) {
         setMessage('Schedule generation process has started. Fetching the latest schedule...');
         setIsLoading(true);
         pollForCompletion(); // Start polling for the latest schedule

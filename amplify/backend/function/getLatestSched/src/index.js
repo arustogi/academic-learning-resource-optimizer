@@ -1,4 +1,4 @@
-const { DynamoDBClient, QueryCommand } = require("@aws-sdk/client-dynamodb");
+const { DynamoDBClient, ScanCommand } = require("@aws-sdk/client-dynamodb");
 
 const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
 
@@ -8,17 +8,21 @@ exports.handler = async (event) => {
     try {
         const params = {
             TableName: 'saved-scheds',
-            KeyConditionExpression: "folderName = :folderName",
+            FilterExpression: "folderName = :folderName",
             ExpressionAttributeValues: {
                 ":folderName": { S: folderName }
             },
-            ScanIndexForward: false, // Sorts in descending order
-            Limit: 1 // Get the most recent item
+            ScanIndexForward: false // Sorts in descending order
         };
 
-        const data = await dynamoClient.send(new QueryCommand(params));
+        const data = await dynamoClient.send(new ScanCommand(params));
 
         if (data.Items && data.Items.length > 0) {
+            // Assuming that the scan returned multiple items, sort by the most recent savedAt date
+            const latestItem = data.Items.reduce((prev, current) => {
+                return (prev.savedAt.S > current.savedAt.S) ? prev : current;
+            });
+
             return {
                 statusCode: 200,
                 headers: {
@@ -26,9 +30,9 @@ exports.handler = async (event) => {
                     "Access-Control-Allow-Origin": "*"
                 },
                 body: JSON.stringify({
-                    scheduleName: data.Items[0].scheduleName.S,
-                    schedule: JSON.parse(data.Items[0].schedule.S),
-                    savedAt: data.Items[0].savedAt.S,
+                    scheduleName: latestItem.scheduleName.S,
+                    schedule: JSON.parse(latestItem.schedule.S),
+                    savedAt: latestItem.savedAt.S,
                 }),
             };
         } else {
