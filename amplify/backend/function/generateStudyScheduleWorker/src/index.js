@@ -8,8 +8,8 @@ exports.handler = async (event) => {
 
     try {
         const deadlines = await fetchDeadlines(folderName);
-        const embeddings = await fetchEmbeddings(folderName);
-        const detailedSchedule = await generateSchedule(embeddings, deadlines);
+        const embeddingsWithDocIDs = await fetchEmbeddings(folderName);  
+        const detailedSchedule = await generateSchedule(embeddingsWithDocIDs, deadlines);
 
         await saveScheduleToDynamoDB(scheduleName, folderName, detailedSchedule);
 
@@ -27,6 +27,7 @@ exports.handler = async (event) => {
     }
 };
 
+// Fetch deadlines from DynamoDB
 async function fetchDeadlines(folderName) {
     const params = {
         TableName: 'studyMaterialDeadlines',
@@ -41,6 +42,7 @@ async function fetchDeadlines(folderName) {
     return JSON.parse(result.Item.deadlines.S);
 }
 
+// Fetch embeddings from DynamoDB, structured with documentID
 async function fetchEmbeddings(folderName) {
     const params = {
         TableName: 'studyMaterialEmbeddings',
@@ -57,6 +59,7 @@ async function fetchEmbeddings(folderName) {
         throw new Error(`No embeddings found for folderName: ${folderName}`);
     }
 
+    // Returning array of objects where each contains documentID and embeddings
     return data.Items.map(item => {
         if (!item.documentID || !item.embeddings) {
             console.warn("Item missing expected attributes:", JSON.stringify(item, null, 2));
@@ -76,32 +79,24 @@ async function fetchEmbeddings(folderName) {
     }).filter(item => item !== null);
 }
 
+// Generates a detailed study schedule using OpenAI API
+async function generateSchedule(embeddingsWithDocIDs, deadlines) {
 
-
-async function generateSchedule(embeddings, deadlines) {
-
-    console.log("Embeddings passed to OpenAI:", JSON.stringify(embeddings));
+    console.log("Embeddings passed to OpenAI:", JSON.stringify(embeddingsWithDocIDs));
     console.log("Deadlines passed to OpenAI:", JSON.stringify(deadlines));
-    const chunkSize = 4000; 
-    const chunks = [];
-    for (let i = 0; i < embeddings.length; i += chunkSize) {
-        chunks.push(embeddings.slice(i, i + chunkSize));
-    }
-
-    let completeSchedule = "";
 
     const OPENAI_API_KEY = '';
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    const prompt =  `You are an AI assistant tasked with creating a detailed study schedule. Below are embeddings of the study materials that capture their content and relevance. Your task is to generate a study schedule that not only meets the deadlines but also accurately references real materials represented by these embeddings.
+    const prompt =  `You are an AI assistant tasked with creating a detailed study schedule. Below are embeddings of the study materials, grouped by document ID, which capture their content and relevance. Your task is to generate a study schedule that not only meets the deadlines but also accurately references real materials represented by these embeddings.
 
-    The embeddings provided are based on the actual content of the study materials. Therefore, when creating the study schedule, cite the specific materials (e.g., chapters, notes, problem sets) based on the content represented by these embeddings. Do not generate fictional or generic materials. Only reference actual content that these embeddings represent.
-    
+    The embeddings provided are based on the actual content of the study materials. Therefore, when creating the study schedule, cite the specific materials (e.g.problems) based on the content represented by these embeddings(not the actual embeddings). Do not generate fictional or generic materials. Only reference actual content that these embeddings represent.
+
     Here are the deadlines extracted:\n\n${JSON.stringify(deadlines)}
-    
-    And here are the embeddings:\n\n${JSON.stringify(embeddings)}
-    
-    Please generate the study schedule in JSON format, where each day includes tasks and the relevant materials to be used.`;
+
+    And here are the embeddings, grouped by document ID:\n\n${JSON.stringify(embeddingsWithDocIDs)}
+
+    Please generate the study schedule in an HTML table format. Each row should represent a day, with the first column as the day number and the second column as the tasks, and the third column as the relevant material to be focused on based on the embedding analytics.`;
 
     try {
         const response = await axios.post(apiUrl, {
@@ -120,15 +115,16 @@ async function generateSchedule(embeddings, deadlines) {
                 'Content-Type': 'application/json'
             }
         });
-        completeSchedule += response.data.choices[0].message.content.trim() + "\n";
+
+        return response.data.choices[0].message.content.trim();
         
     } catch (error) {
         console.error("Error calling OpenAI API:", error.response?.data || error.message);
         throw new Error("Failed to generate study schedule");
     }
-    return completeSchedule.trim();
 }
 
+// Save the generated schedule to DynamoDB
 async function saveScheduleToDynamoDB(scheduleName, folderName, schedule) {
     const params = {
         TableName: 'saved-scheds',

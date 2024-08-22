@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { TextField, Button, Typography, Paper, CircularProgress } from '@mui/material';
 
-const GenerateSchedule = ({ apiUrl, setOutput }) => {
+const GenerateSchedule = ({ apiUrl }) => {
   const [folderName, setFolderName] = useState('');
   const [scheduleName, setScheduleName] = useState('');
   const [message, setMessage] = useState('');
@@ -33,29 +33,27 @@ const GenerateSchedule = ({ apiUrl, setOutput }) => {
       console.error('Error starting schedule generation:', error);
       setMessage('Error starting schedule generation.');
     }
-};
+  };
 
-
-const pollForCompletion = async () => {
-  try {
+  const pollForCompletion = async () => {
+    try {
       const response = await axios.get(`${apiUrl}/getLatestSchedule`, {
-          params: { folderName }
+        params: { folderName }
       });
 
       if (response.status === 200 && response.data.schedule) {
-          setMessage('Schedule generation complete.');
-          setSchedule(response.data.schedule); // Display the schedule
-          setIsLoading(false); // Stop loading indicator
+        setMessage('Schedule generation complete.');
+        setSchedule(response.data.schedule); // The schedule is now an HTML string
+        setIsLoading(false);
       } else {
-          setTimeout(pollForCompletion, 5000); // Poll again after 5 seconds
+        setTimeout(pollForCompletion, 5000);
       }
-  } catch (error) {
+    } catch (error) {
       console.error('Error polling for completion:', error);
       setMessage('Error polling for completion.');
-      setIsLoading(false); // Stop loading indicator on error
-  }
-};
-
+      setIsLoading(false); 
+    }
+  };
 
   return (
     <Paper style={{ padding: '20px', marginTop: '20px' }}>
@@ -83,7 +81,9 @@ const pollForCompletion = async () => {
       </form>
       {message && <Typography variant="body1" color="textSecondary" style={{ marginTop: '16px' }}>{message}</Typography>}
       {isLoading && <CircularProgress style={{ marginTop: '16px' }} />}
-      {schedule && <pre style={{ marginTop: '16px', whiteSpace: 'pre-wrap' }}>{JSON.stringify(schedule, null, 2)}</pre>}
+      {schedule && (
+        <div style={{ marginTop: '16px' }} dangerouslySetInnerHTML={{ __html: schedule }} />
+      )}
     </Paper>
   );
 };

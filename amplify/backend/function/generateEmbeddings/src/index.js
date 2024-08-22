@@ -1,4 +1,3 @@
-
 const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const axios = require('axios');
 
@@ -11,7 +10,7 @@ exports.handler = async (event) => {
         const { folderName, documentID, documentContent } = event;
 
         if (!folderName || !documentID || !documentContent) {
-            throw new Error("Missing required parameters: folderName, documentId, or documentContent");
+            throw new Error("Missing required parameters: folderName, documentID, or documentContent");
         }
 
         // Generate embeddings for the document
@@ -24,12 +23,12 @@ exports.handler = async (event) => {
 
         console.log("Embeddings generated:", embeddings);
 
-        // Store embeddings in DynamoDB
+        // Store embeddings in DynamoDB with documentID as a reference
         const params = {
             TableName: 'studyMaterialEmbeddings',
             Item: {
                 folderName: { S: folderName },
-                documentID: { S: documentID },
+                documentID: { S: documentID },  // Referenced by documentID
                 embeddings: { S: JSON.stringify(embeddings) }
             }
         };
@@ -73,5 +72,3 @@ async function generateEmbeddings(documentContent) {
         throw new Error("Failed to generate embeddings");
     }
 }
-
-   

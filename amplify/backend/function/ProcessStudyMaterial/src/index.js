@@ -129,7 +129,6 @@ exports.handler = async (event) => {
 
         console.log("DynamoDB insert completed");
 
-        // Immediately respond to the user
         response = {
             statusCode: 200,
             headers: {
@@ -141,7 +140,8 @@ exports.handler = async (event) => {
         };
         console.log("Document uploaded successfully:", response);
 
-        // Invoke generateEmbeddings
+        
+
         const invokeParams = {
             FunctionName: "generateEmbeddings-dev",
             InvocationType: 'Event', // Asynchronous invocation
@@ -153,7 +153,18 @@ exports.handler = async (event) => {
         };
 
         await lambdaClient.send(new InvokeCommand(invokeParams));
-        console.log("generateEmbeddings  invoked");
+        console.log("generateEmbeddings invoked");
+
+        const invokeDeadlinesParams = {
+            FunctionName: "extractDeadlines-dev",
+            InvocationType: 'Event', // Asynchronous invocation
+            Payload: JSON.stringify({
+                folderName
+            })
+        };
+
+        await lambdaClient.send(new InvokeCommand(invokeDeadlinesParams));
+        console.log("extractDeadlines invoked");
 
     } catch (error) {
         console.error("Error uploading document:", error);

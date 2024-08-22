@@ -65,7 +65,7 @@ async function parseDeadlinesWithOpenAI(studyMaterials) {
 
     const deadlines = [];
     for (const material of studyMaterials) {
-        const prompt = `You are an AI assistant tasked with extracting deadlines from study materials. Given the following content:\n\n${material.content}\n\nPlease extract any dates and corresponding events mentioned in the content in the form they are in. Be aware that some dates and times maybe parts of the study materials and not relevant to the students timeline`;
+        const prompt = `You are an AI assistant tasked with extracting deadlines from study materials. Given the following content:\n\n${material.content}\n\nPlease extract any dates and corresponding events mentioned in the content in the form they are in. Be aware that some times(words like minutes or noon) maybe parts of the study materials and not relevant to the students timeline, so do not include and times that are not concrete dates`;
 
         try {
             const response = await axios.post(apiUrl, {
