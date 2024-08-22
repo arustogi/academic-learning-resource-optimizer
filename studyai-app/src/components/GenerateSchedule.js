@@ -1,6 +1,41 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { TextField, Button, Typography, Paper, CircularProgress } from '@mui/material';
+import {
+  TextField,
+  Button,
+  Typography,
+  Paper,
+  CircularProgress,
+  Card,
+  CardContent,
+  CardActions,
+} from '@mui/material';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1976d2',
+    },
+    secondary: {
+      main: '#ff4081',
+    },
+  },
+  typography: {
+    h4: {
+      fontWeight: 600,
+    },
+    subtitle1: {
+      color: '#757575',
+    },
+    body1: {
+      color: '#333',
+    },
+  },
+  shape: {
+    borderRadius: 8,
+  },
+});
 
 const GenerateSchedule = ({ apiUrl }) => {
   const [folderName, setFolderName] = useState('');
@@ -56,35 +91,53 @@ const GenerateSchedule = ({ apiUrl }) => {
   };
 
   return (
-    <Paper style={{ padding: '20px', marginTop: '20px' }}>
-      <Typography variant="h5" gutterBottom style={{ color: '#3f51b5' }}>
-        Generate Schedule
-      </Typography>
-      <form onSubmit={handleSubmit}>
-        <TextField
-          label="Folder Name"
-          value={folderName}
-          onChange={(e) => setFolderName(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <TextField
-          label="Schedule Name"
-          value={scheduleName}
-          onChange={(e) => setScheduleName(e.target.value)}
-          fullWidth
-          margin="normal"
-        />
-        <Button type="submit" variant="contained" color="primary" fullWidth style={{ marginTop: '16px' }}>
-          Generate Schedule
-        </Button>
-      </form>
-      {message && <Typography variant="body1" color="textSecondary" style={{ marginTop: '16px' }}>{message}</Typography>}
-      {isLoading && <CircularProgress style={{ marginTop: '16px' }} />}
-      {schedule && (
-        <div style={{ marginTop: '16px' }} dangerouslySetInnerHTML={{ __html: schedule }} />
-      )}
-    </Paper>
+    <ThemeProvider theme={theme}>
+      <Card style={{ maxWidth: 600, margin: '20px auto', padding: '20px' }}>
+        <CardContent>
+          <Typography variant="h4" gutterBottom>
+            Generate Study Schedule
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom>
+            Fill in the details to generate your custom study schedule.
+          </Typography>
+          <form onSubmit={handleSubmit}>
+            <TextField
+              label="Folder Name"
+              value={folderName}
+              onChange={(e) => setFolderName(e.target.value)}
+              fullWidth
+              margin="normal"
+              variant="outlined"
+              required
+            />
+            <TextField
+              label="Schedule Name"
+              value={scheduleName}
+              onChange={(e) => setScheduleName(e.target.value)}
+              fullWidth
+              margin="normal"
+              variant="outlined"
+              required
+            />
+            <CardActions style={{ justifyContent: 'center' }}>
+              <Button type="submit" variant="contained" color="primary" style={{ marginTop: '16px', padding: '10px 20px' }}>
+                Generate Schedule
+              </Button>
+            </CardActions>
+          </form>
+          {message && <Typography variant="body1" color="textSecondary" style={{ marginTop: '16px' }}>{message}</Typography>}
+          {isLoading && <CircularProgress style={{ marginTop: '16px' }} />}
+          {schedule && (
+            <Paper style={{ marginTop: '16px', padding: '20px', backgroundColor: '#f4f6f8' }}>
+              <Typography variant="h6" gutterBottom>
+                Generated Schedule
+              </Typography>
+              <div dangerouslySetInnerHTML={{ __html: schedule }} />
+            </Paper>
+          )}
+        </CardContent>
+      </Card>
+    </ThemeProvider>
   );
 };
 

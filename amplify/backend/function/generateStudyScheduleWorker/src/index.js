@@ -90,13 +90,13 @@ async function generateSchedule(embeddingsWithDocIDs, deadlines) {
 
     const prompt =  `You are an AI assistant tasked with creating a detailed study schedule. Below are embeddings of the study materials, grouped by document ID, which capture their content and relevance. Your task is to generate a study schedule that not only meets the deadlines but also accurately references real materials represented by these embeddings.
 
-    The embeddings provided are based on the actual content of the study materials. Therefore, when creating the study schedule, cite the specific materials (e.g.problems) based on the content represented by these embeddings(not the actual embeddings). Do not generate fictional or generic materials. Only reference actual content that these embeddings represent.
+    The embeddings provided are based on the actual content of the study materials. Therefore, when creating the study schedule, cite the specific materials (e.g.problems) based on the content represented by these embeddings. Do not generate fictional or generic materials. Only reference actual content that these embeddings represent.
 
     Here are the deadlines extracted:\n\n${JSON.stringify(deadlines)}
 
     And here are the embeddings, grouped by document ID:\n\n${JSON.stringify(embeddingsWithDocIDs)}
 
-    Please generate the study schedule in an HTML table format. Each row should represent a day, with the first column as the day number and the second column as the tasks, and the third column as the relevant material to be focused on based on the embedding analytics.`;
+    Please generate the study schedule in an HTML table format. Each row should represent a day, with the first column as the day number and the second column as the tasks, and the third column as the relevant material to be focused on based on the embedding analytics (Cite specific docs).`;
 
     try {
         const response = await axios.post(apiUrl, {

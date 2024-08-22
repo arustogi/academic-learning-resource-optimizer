@@ -40,15 +40,15 @@
         },
         "generateEmbeddings": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateEmbeddings-736a4b64307974684874-build.zip"
+          "s3Key": "amplify-builds/generateEmbeddings-58783358524133647943-build.zip"
         },
         "extractDeadlines": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/extractDeadlines-7632796b36385572504b-build.zip"
+          "s3Key": "amplify-builds/extractDeadlines-4153644b37584f4f566a-build.zip"
         },
         "generateStudyScheduleWorker": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
-          "s3Key": "amplify-builds/generateStudyScheduleWorker-5952755334764c656343-build.zip"
+          "s3Key": "amplify-builds/generateStudyScheduleWorker-763231765848722b594e-build.zip"
         },
         "getLatestSched": {
           "deploymentBucketName": "amplify-studyai-dev-aeab2-deployment",
