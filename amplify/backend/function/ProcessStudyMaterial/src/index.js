@@ -9,7 +9,7 @@ const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
 const s3Client = new S3Client({ region: "us-west-2" });
 const lambdaClient = new LambdaClient({ region: "us-west-2" });
 
-const BUCKET_NAME = "study-material-bucket";
+const BUCKET_NAME = " ";// Replace with your S3 bucket name
 
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
@@ -109,7 +109,7 @@ exports.handler = async (event) => {
 
         
         const dynamoParams = {
-            TableName: 'studyMaterial-dev',
+            TableName: '',// Replace with your dynamo study material table name
             Item: {
                 id: { S: documentID },
                 documentTitle: { S: documentTitle },

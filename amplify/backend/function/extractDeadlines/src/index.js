@@ -10,7 +10,7 @@ exports.handler = async (event) => {
         const studyMaterials = await fetchStudyMaterials(folderName);
         const deadlines = await parseDeadlinesWithOpenAI(studyMaterials);
         const params = {
-            TableName: 'studyMaterialDeadlines',
+            TableName: '',// Replace with your dynamo deadline table name
             Key: { folderName: { S: folderName } },
             UpdateExpression: "set deadlines = :deadlines",
             ExpressionAttributeValues: {
@@ -35,7 +35,7 @@ exports.handler = async (event) => {
 
 async function fetchStudyMaterials(folderName) {
     const params = {
-        TableName: 'studyMaterial-dev',
+        TableName: '',// Replace with your S3 bucket name
         FilterExpression: "folderName = :folderName",
         ExpressionAttributeValues: {
             ":folderName": { S: folderName }
@@ -60,7 +60,7 @@ async function fetchStudyMaterials(folderName) {
 }
 
 async function parseDeadlinesWithOpenAI(studyMaterials) {
-    const OPENAI_API_KEY = '';
+    const OPENAI_API_KEY = ''; // Replace with your API key
     const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
     const deadlines = [];

@@ -1,7 +1,7 @@
 const { DynamoDBClient, PutItemCommand } = require("@aws-sdk/client-dynamodb");
 const axios = require('axios');
 
-const dynamoClient = new DynamoDBClient({ region: "us-west-2" });
+const dynamoClient = new DynamoDBClient({ region: "" }); // Replace with your region bucket name
 
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
@@ -25,7 +25,7 @@ exports.handler = async (event) => {
 
         // Store embeddings in DynamoDB with documentID as a reference
         const params = {
-            TableName: 'studyMaterialEmbeddings',
+            TableName: '',// Replace with your dynamo embeddings table name
             Item: {
                 folderName: { S: folderName },
                 documentID: { S: documentID },  // Referenced by documentID
@@ -45,7 +45,7 @@ exports.handler = async (event) => {
 };
 
 async function generateEmbeddings(documentContent) {
-    const OPENAI_API_KEY = '';
+    const OPENAI_API_KEY = ''; // Replace with your API name
     
     const apiUrl = 'https://api.openai.com/v1/embeddings';
 

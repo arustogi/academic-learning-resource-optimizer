@@ -30,7 +30,7 @@ exports.handler = async (event) => {
 // Fetch deadlines from DynamoDB
 async function fetchDeadlines(folderName) {
     const params = {
-        TableName: 'studyMaterialDeadlines',
+        TableName: '',// Replace with your table deadline name
         Key: { folderName: { S: folderName } }
     };
     const result = await dynamoClient.send(new GetItemCommand(params));
@@ -45,7 +45,7 @@ async function fetchDeadlines(folderName) {
 // Fetch embeddings from DynamoDB, structured with documentID
 async function fetchEmbeddings(folderName) {
     const params = {
-        TableName: 'studyMaterialEmbeddings',
+        TableName: ' ', // Replace with your embedding table(dynamo) name
         FilterExpression: "folderName = :folderName",
         ExpressionAttributeValues: {
             ":folderName": { S: folderName }

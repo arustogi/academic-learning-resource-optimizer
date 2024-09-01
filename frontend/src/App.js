@@ -47,7 +47,7 @@ const theme = createTheme({
 
 const App = () => {
     const [output, setOutput] = useState('');
-    const apiUrl = 'https://9cfdj03mjb.execute-api.us-west-2.amazonaws.com/dev';
+    const apiUrl = 'your API url';
 
     return (
         <ThemeProvider theme={theme}>

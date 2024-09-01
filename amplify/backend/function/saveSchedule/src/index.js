@@ -24,7 +24,7 @@ exports.handler = async (event) => {
         }
 
         const dynamoParams = {
-            TableName: 'saved-scheds',
+            TableName: '',// Replace with your  schedule dynamo table name
             Item: {
                 ID: { S: uuidv4() },  // Ensuring the primary key 'id' is included
                 scheduleName: { S: scheduleName },

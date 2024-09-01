@@ -7,7 +7,7 @@ exports.handler = async (event) => {
 
     try {
         const params = {
-            TableName: 'saved-scheds',
+            TableName: '', // Replace with your schedule dynamo table name
             FilterExpression: "folderName = :folderName",
             ExpressionAttributeValues: {
                 ":folderName": { S: folderName }

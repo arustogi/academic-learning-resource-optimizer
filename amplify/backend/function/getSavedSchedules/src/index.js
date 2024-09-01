@@ -5,7 +5,7 @@ const client = new DynamoDBClient({ region: "us-west-2" });
 exports.handler = async (event) => {
     try {
         const params = {
-            TableName: "saved-scheds",
+            TableName: " ",// Replace with your dynamo schedule table name
         };
 
         const data = await client.send(new ScanCommand(params));

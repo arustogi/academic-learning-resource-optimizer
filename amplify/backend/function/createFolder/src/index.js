@@ -2,7 +2,7 @@ const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 const s3Client = new S3Client({ region: "us-west-2" });
 
-const BUCKET_NAME = "study-material-bucket"; // Replace with your S3 bucket name
+const BUCKET_NAME = " "; // Replace with your S3 bucket name
 
 exports.handler = async (event) => {
     console.log("Received event:", JSON.stringify(event, null, 2));
